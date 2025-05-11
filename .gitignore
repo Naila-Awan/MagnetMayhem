@@ -1,0 +1,45 @@
+# Unity generated files
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# User-specific
+UserSettings/
+
+# Auto-generated VS/VSCode files
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# Crash and error reports
+sysinfo.txt
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Unity Cloud Build
+*.apk
+*.aab
+*.ipa
+
+# Rider IDE
+.idea/
+*.sln.iml
+
+# Optional: exclude sensitive configs (e.g. Analytics or Collaborate configs)
+*.collabignore
+
+# Exclude project-specific files
+proj/
