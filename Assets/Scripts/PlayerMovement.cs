@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -13,12 +14,14 @@ public class PlayerMovement : MonoBehaviour
     private float slideDuration = 1.2f;
     [SerializeField]
     private GameObject playerAnim;
-
     [SerializeField]
     private Camera mainCamera;
+    [SerializeField]
+    private GameObject destructionEffectPrefab;
 
     private float[] lanes = new float[] { -14f, -8f, -2f, 4f, 10f };
     private int currentLaneIndex = 2;
+
     private Vector2 touchStartPosition;
     private bool isSwiping = false;
     private bool isMovingHorizontally = false;
@@ -26,8 +29,10 @@ public class PlayerMovement : MonoBehaviour
     private bool isSliding = false;
 
     private Vector3 originalScale;
+    private float cameraOffsetZ;
 
-    private float cameraOffsetZ; // Maintain initial offset between player and camera
+    private Dictionary<GameObject, int> hitCounts = new Dictionary<GameObject, int>();
+    private const int heavyHitThreshold = 3;
 
     void Start()
     {
@@ -41,7 +46,7 @@ public class PlayerMovement : MonoBehaviour
         transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
         mainCamera.transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
 
-        // Lock Z offset (insurance against any animation-based visual drift)
+        // Lock Z offset
         Vector3 correctedPosition = transform.position;
         correctedPosition.z = mainCamera.transform.position.z + cameraOffsetZ;
         transform.position = correctedPosition;
@@ -58,7 +63,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // ------------------ Touch input
+        // Touch input
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -68,6 +73,8 @@ public class PlayerMovement : MonoBehaviour
                 case TouchPhase.Began:
                     touchStartPosition = touch.position;
                     isSwiping = true;
+
+                    HandleTouchObject(touch.position);
                     break;
 
                 case TouchPhase.Moved:
@@ -76,7 +83,6 @@ public class PlayerMovement : MonoBehaviour
                         float deltaX = touch.position.x - touchStartPosition.x;
                         float deltaY = touch.position.y - touchStartPosition.y;
 
-                        // Horizontal swipe
                         if (Mathf.Abs(deltaX) > Mathf.Abs(deltaY) && Mathf.Abs(deltaX) > 50f && !isMovingHorizontally)
                         {
                             if (deltaX > 0 && currentLaneIndex < lanes.Length - 1)
@@ -90,7 +96,6 @@ public class PlayerMovement : MonoBehaviour
                                 isMovingHorizontally = true;
                             }
                         }
-                        // Vertical swipe
                         else if (Mathf.Abs(deltaY) > Mathf.Abs(deltaX) && Mathf.Abs(deltaY) > 50f)
                         {
                             if (deltaY > 0 && !isJumping)
@@ -101,8 +106,6 @@ public class PlayerMovement : MonoBehaviour
                             {
                                 StartCoroutine(Slide());
                             }
-                            playerAnim.GetComponent<Animator>().Play("Running");
-
                         }
                     }
                     break;
@@ -115,15 +118,43 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void HandleTouchObject(Vector2 screenPosition)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(screenPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            GameObject obj = hit.collider.gameObject;
+
+            if (obj.CompareTag("metallic"))
+            {
+                Instantiate(destructionEffectPrefab, obj.transform.position, Quaternion.identity);
+                Destroy(obj);
+            }
+            else if (obj.CompareTag("heavyMetallic"))
+            {
+                if (!hitCounts.ContainsKey(obj))
+                    hitCounts[obj] = 0;
+
+                hitCounts[obj]++;
+
+                if (hitCounts[obj] >= heavyHitThreshold)
+                {
+                    Instantiate(destructionEffectPrefab, obj.transform.position, Quaternion.identity);
+                    Destroy(obj);
+                    hitCounts.Remove(obj);
+                }
+            }
+        }
+    }
+
     IEnumerator Jump()
     {
         isJumping = true;
-        playerAnim.GetComponent<Animator>().Play("Big Jump");
+        playerAnim.GetComponent<Animator>().Play("Jump Forward");
 
         float jumpSpeed = horizontalSpeed / 2f;
         float targetY = transform.position.y + jumpHeight;
 
-        // Move upward
         while (transform.position.y < targetY)
         {
             Vector3 newPos = transform.position;
@@ -132,7 +163,6 @@ public class PlayerMovement : MonoBehaviour
             yield return null;
         }
 
-        // Move downward
         float groundY = 3.8f;
         while (transform.position.y > groundY)
         {
@@ -143,6 +173,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         isJumping = false;
+        playerAnim.GetComponent<Animator>().Play("Running");
     }
 
     IEnumerator Slide()
@@ -155,5 +186,6 @@ public class PlayerMovement : MonoBehaviour
         transform.localScale = originalScale;
 
         isSliding = false;
+        playerAnim.GetComponent<Animator>().Play("Running");
     }
 }

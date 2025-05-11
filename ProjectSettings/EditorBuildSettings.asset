@@ -4,7 +4,16 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/SplashScreen.unity
+    guid: af03105c81c5d6047a6d5567247f7ce6
+  - enabled: 1
+    path: Assets/Scenes/SampleScene.unity
+    guid: d57ab95c682c7df46ba45ddb8ab7473b
+  - enabled: 1
+    path: Assets/Scenes/GameOverScene.unity
+    guid: c0571f0faa93ec94ea0a52027e245850
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 289c1b55c9541489481df5cc06664110, type: 3}
   m_UseUCBPForAssetBundles: 0

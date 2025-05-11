@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5955647075439453851}
   - component: {fileID: 8715198319026477148}
   - component: {fileID: 6326869323531872060}
-  - component: {fileID: -7887130185427215223}
+  - component: {fileID: 6168460157225717478}
   m_Layer: 0
   m_Name: Metal
   m_TagString: metallic
@@ -109,7 +109,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &-7887130185427215223
+--- !u!54 &6168460157225717478
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -117,7 +117,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4671729206828359565}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 100
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -133,6 +133,6 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 126
+  m_Interpolate: 1
+  m_Constraints: 116
   m_CollisionDetection: 0
