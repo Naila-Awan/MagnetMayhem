@@ -2,12 +2,21 @@ using UnityEngine;
 
 public class CollectCoin : MonoBehaviour
 {
-    [SerializeField] AudioSource coinFX;
+    private AudioSource coinFX;
 
-    void OnTriggerEnter(Collider other) // Corrected method name
+    private void Start()
+    {
+        GameObject fxGO = GameObject.Find("CoinCollect"); //---- get audio object
+        if (fxGO != null)
+        {
+            coinFX = fxGO.GetComponent<AudioSource>();
+        }
+    }
+
+    void OnTriggerEnter(Collider other) // colliding with coin
     {
         coinFX.Play();
         MasterInfo.coinCount++;
-        this.gameObject.SetActive(false);
+        Destroy(gameObject);
     }
 }

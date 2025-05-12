@@ -4,44 +4,47 @@ using System.Collections.Generic;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField]
-    private float playerSpeed = 5;
-    [SerializeField]
-    private float horizontalSpeed = 6;
-    [SerializeField]
-    private float jumpHeight = 7;
-    [SerializeField]
-    private float slideDuration = 1.2f;
-    [SerializeField]
-    private GameObject playerAnim;
-    [SerializeField]
-    private Camera mainCamera;
-    [SerializeField]
-    private GameObject destructionEffectPrefab;
+    [Header("Player Settings")]
+    [SerializeField] private float playerSpeed = 5f;
+    [SerializeField] private float horizontalSpeed = 6f;
+    [SerializeField] private float jumpHeight = 7f;
+    [SerializeField] private float slideDuration = 2f;
+
+    [Header("Scene References")]
+    [SerializeField] private GameObject playerAnim;
+    [SerializeField] private Transform playerMesh; // ✅ This is ONLY the mesh, not the whole object
+    [SerializeField] private Camera mainCamera;
+    [SerializeField] private GameObject destructionEffectPrefab;
 
     private float[] lanes = new float[] { -14f, -8f, -2f, 4f, 10f };
     private int currentLaneIndex = 2;
 
     private Vector2 touchStartPosition;
+    private float holdStartTime;
     private bool isSwiping = false;
     private bool isMovingHorizontally = false;
     private bool isJumping = false;
     private bool isSliding = false;
+    private bool isDead = false;
 
-    private Vector3 originalScale;
+    private Vector3 originalMeshScale;
+    private Vector3 originalMeshPosition;
     private float cameraOffsetZ;
 
-    private Dictionary<GameObject, int> hitCounts = new Dictionary<GameObject, int>();
-    private const int heavyHitThreshold = 3;
+    private const float holdThreshold = 0.5f;
+    private GameObject heldObject;
 
     void Start()
     {
-        originalScale = transform.localScale;
+        originalMeshScale = playerMesh.localScale;
+        originalMeshPosition = playerMesh.localPosition;
         cameraOffsetZ = transform.position.z - mainCamera.transform.position.z;
     }
 
     void Update()
     {
+        if (isDead) return;
+
         // Move forward
         transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
         mainCamera.transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
@@ -51,7 +54,7 @@ public class PlayerMovement : MonoBehaviour
         correctedPosition.z = mainCamera.transform.position.z + cameraOffsetZ;
         transform.position = correctedPosition;
 
-        // Horizontal movement
+        // Horizontal Movement
         if (isMovingHorizontally)
         {
             Vector3 targetPosition = new Vector3(lanes[currentLaneIndex], transform.position.y, transform.position.z);
@@ -63,18 +66,17 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        // Touch input
+        // Touch Input
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-
             switch (touch.phase)
             {
                 case TouchPhase.Began:
                     touchStartPosition = touch.position;
                     isSwiping = true;
-
-                    HandleTouchObject(touch.position);
+                    holdStartTime = Time.time;
+                    heldObject = GetTouchedObject(touch.position);
                     break;
 
                 case TouchPhase.Moved:
@@ -110,44 +112,71 @@ public class PlayerMovement : MonoBehaviour
                     }
                     break;
 
+                case TouchPhase.Stationary:
+                    if (heldObject != null && Time.time - holdStartTime >= holdThreshold)
+                    {
+                        ApplyHoldAction(heldObject);
+                        heldObject = null;
+                    }
+                    break;
+
                 case TouchPhase.Ended:
                 case TouchPhase.Canceled:
                     isSwiping = false;
+                    heldObject = null;
                     break;
             }
         }
     }
 
-    private void HandleTouchObject(Vector2 screenPosition)
+    private GameObject GetTouchedObject(Vector2 screenPosition)
     {
         Ray ray = mainCamera.ScreenPointToRay(screenPosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            GameObject obj = hit.collider.gameObject;
+            return hit.collider.gameObject;
+        }
+        return null;
+    }
 
-            if (obj.CompareTag("metallic"))
-            {
-                Instantiate(destructionEffectPrefab, obj.transform.position, Quaternion.identity);
-                Destroy(obj);
-            }
-            else if (obj.CompareTag("heavyMetallic"))
-            {
-                if (!hitCounts.ContainsKey(obj))
-                    hitCounts[obj] = 0;
-
-                hitCounts[obj]++;
-
-                if (hitCounts[obj] >= heavyHitThreshold)
-                {
-                    Instantiate(destructionEffectPrefab, obj.transform.position, Quaternion.identity);
-                    Destroy(obj);
-                    hitCounts.Remove(obj);
-                }
-            }
+    private void ApplyHoldAction(GameObject obj)
+    {
+        if (obj.CompareTag("metallic") || obj.CompareTag("heavyMetallic"))
+        {
+            PushAndDestroy(obj, Vector3.forward * 100f);
         }
     }
 
-    IEnumerator Jump()
+    private void PushAndDestroy(GameObject obj, Vector3 force)
+    {
+        Collider col = obj.GetComponent<Collider>();
+        if (col != null)
+        {
+            col.isTrigger = true;
+        }
+
+        Rigidbody rb = obj.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.constraints = RigidbodyConstraints.FreezeRotation;
+            rb.AddForce(force, ForceMode.Impulse);
+        }
+
+        StartCoroutine(DestroyAfterDelay(obj, 2f));
+    }
+
+    private IEnumerator DestroyAfterDelay(GameObject obj, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (obj != null)
+        {
+            Instantiate(destructionEffectPrefab, obj.transform.position, Quaternion.identity);
+            Destroy(obj);
+        }
+    }
+
+    private IEnumerator Jump()
     {
         isJumping = true;
         playerAnim.GetComponent<Animator>().Play("Jump Forward");
@@ -157,35 +186,52 @@ public class PlayerMovement : MonoBehaviour
 
         while (transform.position.y < targetY)
         {
-            Vector3 newPos = transform.position;
-            newPos.y = Mathf.MoveTowards(transform.position.y, targetY, jumpSpeed * Time.deltaTime);
-            transform.position = newPos;
+            transform.position = new Vector3(transform.position.x, Mathf.MoveTowards(transform.position.y, targetY, jumpSpeed * Time.deltaTime), transform.position.z);
             yield return null;
         }
 
         float groundY = 3.8f;
         while (transform.position.y > groundY)
         {
-            Vector3 newPos = transform.position;
-            newPos.y = Mathf.MoveTowards(transform.position.y, groundY, jumpSpeed * Time.deltaTime);
-            transform.position = newPos;
+            transform.position = new Vector3(transform.position.x, Mathf.MoveTowards(transform.position.y, groundY, jumpSpeed * Time.deltaTime), transform.position.z);
             yield return null;
         }
 
         isJumping = false;
-        playerAnim.GetComponent<Animator>().Play("Running");
+        if (!isSliding && !isDead)
+            playerAnim.GetComponent<Animator>().Play("Running");
     }
 
-    IEnumerator Slide()
+    private IEnumerator Slide()
     {
         isSliding = true;
         playerAnim.GetComponent<Animator>().Play("Running Slide");
 
-        transform.localScale = new Vector3(originalScale.x, originalScale.y / 2, originalScale.z);
+        // ✅ Shrink only the mesh visually, not the entire object
+        playerMesh.localScale = new Vector3(originalMeshScale.x, originalMeshScale.y * 0.5f, originalMeshScale.z);
+        playerMesh.localPosition = new Vector3(originalMeshPosition.x, originalMeshPosition.y - 0.5f, originalMeshPosition.z);
+
         yield return new WaitForSeconds(slideDuration);
-        transform.localScale = originalScale;
+
+        // Restore mesh
+        playerMesh.localScale = originalMeshScale;
+        playerMesh.localPosition = originalMeshPosition;
 
         isSliding = false;
-        playerAnim.GetComponent<Animator>().Play("Running");
+        if (!isJumping && !isDead)
+            playerAnim.GetComponent<Animator>().Play("Running");
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (isDead) return;
+
+        // ✅ Check only for objects tagged "Wall"
+        if (collision.collider.CompareTag("nonmetallic"))
+        {
+            isDead = true;
+            playerAnim.GetComponent<Animator>().Play("Death Falling Back");
+            Debug.Log("Player died by hitting wall!");
+        }
     }
 }

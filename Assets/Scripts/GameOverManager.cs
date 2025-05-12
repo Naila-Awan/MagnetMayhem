@@ -18,4 +18,11 @@ public class GameOverManager : MonoBehaviour
         MasterInfo.coinCount = 0;
         SceneManager.LoadScene("SampleScene");
     }
+
+    public void MainMenu()
+    {
+        // Reset score if needed
+        MasterInfo.coinCount = 0;
+        SceneManager.LoadScene("MainMenu");
+    }
 }

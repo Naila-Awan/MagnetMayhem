@@ -28,7 +28,7 @@ public class CollisionDetect : MonoBehaviour
         yield return new WaitForSeconds(delay);
         fallToGroundSound.Play();
         fadeOut.SetActive(true);
-        yield return new WaitForSeconds(1.5f); // Let the fade animation play
+        yield return new WaitForSeconds(3f); // Let the fade animation play
         SceneManager.LoadScene("GameOverScene");
     }
 }

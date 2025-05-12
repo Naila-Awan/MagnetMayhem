@@ -137,7 +137,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e26a089318b1449a8fdb30a021a4a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinFX: {fileID: 0}
 --- !u!1 &823452601389508879
 GameObject:
   m_ObjectHideFlags: 0
@@ -275,7 +274,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e26a089318b1449a8fdb30a021a4a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinFX: {fileID: 0}
 --- !u!1 &4878938615696318922
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,7 +451,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e26a089318b1449a8fdb30a021a4a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinFX: {fileID: 0}
 --- !u!1 &6448232107000784689
 GameObject:
   m_ObjectHideFlags: 0
@@ -591,7 +588,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e26a089318b1449a8fdb30a021a4a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinFX: {fileID: 0}
 --- !u!1 &8773989574307342392
 GameObject:
   m_ObjectHideFlags: 0
@@ -729,7 +725,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0e26a089318b1449a8fdb30a021a4a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinFX: {fileID: 0}
 --- !u!1001 &3027524102211792296
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -789,6 +784,10 @@ PrefabInstance:
     - target: {fileID: 4671729206828359565, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
       propertyPath: m_TagString
       value: heavyMetallic
+      objectReference: {fileID: 0}
+    - target: {fileID: 6168460157225717478, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
+      propertyPath: m_Constraints
+      value: 118
       objectReference: {fileID: 0}
     - target: {fileID: 8715198319026477148, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -925,6 +924,14 @@ PrefabInstance:
     - target: {fileID: 4671729206828359565, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
       propertyPath: m_TagString
       value: heavyMetallic
+      objectReference: {fileID: 0}
+    - target: {fileID: 6168460157225717478, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
+      propertyPath: m_Mass
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6168460157225717478, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
+      propertyPath: m_Constraints
+      value: 118
       objectReference: {fileID: 0}
     - target: {fileID: 8715198319026477148, guid: a6ee4bad933dbbb4d8b39c08fe519b2a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'

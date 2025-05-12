@@ -20,7 +20,7 @@ public class SegmentGenerator : MonoBehaviour
 
     void GenerateSegment()
     {
-        segmentNum = Random.Range(0, 6);
+        segmentNum = Random.Range(0, segment.Length);
         Instantiate(segment[segmentNum], new Vector3(0, 0, zPos), Quaternion.Euler(0, 90, 0));
         Instantiate(buildings, new Vector3(7.5f, 10, zPos), Quaternion.identity);
         zPos += segmentLength;
